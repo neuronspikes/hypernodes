@@ -1,0 +1,149 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style>
+#myMenu {
+background:#FFF;
+border:1px solid #444;
+display:none;
+width:150px;
+}
+
+#myMenu ul, #myMenu ul * {
+padding:0;
+margin:0;
+}
+
+#myMenu ul li{
+list-style:none;
+border:1px solid #444;
+padding: 5px;
+display:block;
+}
+
+#myMenu ul li:hover{
+background:#666;
+color:#FFF;
+}
+
+#myMenu ul li:hover span{
+color:#FFF;
+}
+
+#myMenu li:hover a{
+color:#FFF;
+}
+
+#myMenu a{
+color:#000;
+font:11px Tahoma;
+font-weight:bold;
+text-decoration:none;
+}
+
+
+#myMenu2 {
+background:#600;
+border:1px solid #200;
+color:#FFF;
+display:none;
+width:150px;
+}
+
+#myMenu2 ul, #myMenu ul * {
+padding:0;
+margin:0;
+}
+
+#myMenu2 ul li{
+list-style:none;
+border:1px solid #200;
+padding: 2px;
+display:block;
+}
+
+#myMenu2 ul li:hover{
+background:#C22;
+color:#FFF;
+}
+
+#myMenu2 ul li:hover span{
+color:#FFF;
+}
+
+#myMenu2 li:hover a{
+color:#FFF;
+}
+
+#myMenu2 a{
+color:#FFF;
+font:11px Tahoma;
+font-weight:bold;
+text-decoration:none;
+}
+
+#myMenu2 a:hover{
+color:#FFF;
+font:11px Tahoma;
+font-weight:bold;
+text-decoration:underline;
+}
+
+
+</style>
+<title>jContext 1.0 Demos</title>
+</head>
+
+<body>
+<pre>
+Testing the following code in action
+
+$("span").showMenu({
+	opacity:0.8,
+	query: "#myMenu"
+});
+</pre>
+<span>Right Click me</span>
+<pre>
+Testing the following code in action
+
+$("p").showMenu({
+	opacity:0.8,
+	query: "#myMenu2"
+});
+</pre>
+<p>You can right Click me too </p>
+<div id="myMenu">
+<ul>
+	<li><a href="#">Edit This Type</a></li>
+    <li><a href="#">Create New Type</a></li>
+    <li><a href="#">Book a Flight</a></li>
+</ul>
+</div>
+
+<div id="myMenu2">
+<ul>
+	<li><a href="#">Create New Class</a></li>
+    <li><a href="#">Delete Class</a></li>
+    <li><a href="#">Get a Job</a></li>
+</ul>
+</div>
+
+
+</body>
+<script language="javascript" type="text/javascript" src="j/jquery-1.2.3.min.js"></script>
+<script language="javascript" type="text/javascript" src="j/jquery.jcontext.1.0.js"></script>
+<script language="javascript">
+$(document).ready(function(){
+	$("span").showMenu({
+		opacity:0.8,
+		query: "#myMenu"
+	});
+	$("p").showMenu({
+		opacity:0.8,
+		query: "#myMenu2"
+	});
+});
+</script>
+</html>
