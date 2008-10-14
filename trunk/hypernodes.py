@@ -12,7 +12,7 @@ from google.appengine.api import images
 
 import nodetypes.text.handlers
 import nodetypes.image.handlers
-
+import nodetypes.application.handlers
 
 logging.getLogger().setLevel(logging.DEBUG)
 
@@ -125,17 +125,37 @@ def getHypernodeFromPath(path,parent=None):
 class MainPage(webapp.RequestHandler):
     def get(self):
         self.redirect('.html')
+    def put(self):
+        logging.debug('PUT')
 
+    def head(self):
+        logging.debug('HEAD')
+
+    def options(self):
+        logging.debug('OPTIONS')
+
+    def delete(self):
+        logging.debug('DELETE')
+
+    def trace(self):
+        logging.debug('TRACE')
+        
+class test(webapp.RequestHandler):
+    def get(self):
+        if self.request.get('root') == "source":
+            self.response.out.write('[{"text": "Hypernodes","expanded": true,"classes": "important","children":['+','.join(map(hypernodes.Hypernodes.toJson,hypernodes.rootHypernodes().itervalues()))+"]}]")
+        else:
+            self.response.out.write("["+','.join(map(hypernodes.Hypernodes.toJson,hypernodes.Hypernodes.get(self.request.get('root')).childs(hypernodes.Hypernodes).itervalues()))+"]")
 
 
 application = webapp.WSGIApplication([
-    ('/test', nodetypes.text.handlers.test),
+    ('/test', test),
     ('/([^~]*)\.html', nodetypes.text.handlers.HTML),
     ('/([^~]*)\.xml', nodetypes.text.handlers.XML),
-    ('/([^~]*)\.js', nodetypes.text.handlers.JS),
-    ('/([^~]*)\.json', nodetypes.text.handlers.JSON),
+    ('/([^~]*)\.js', nodetypes.application.handlers.JS),
+    ('/([^~]*)\.json', nodetypes.application.handlers.JSON),
     ('/([^~]*)\.png', nodetypes.image.handlers.PNG),
-    ('/([^~]*)\.py', nodetypes.text.handlers.PY),
+    ('/([^~]*)\.py', nodetypes.application.handlers.PY),
     ('/[^~]*', MainPage),
 ], debug=True)
 
