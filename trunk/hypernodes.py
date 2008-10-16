@@ -133,7 +133,88 @@ class MainPage(webapp.RequestHandler):
 
     def options(self):
         logging.debug('OPTIONS')
+        self.response.headers.add_header("DAV", "1")#1,2
+        self.response.headers.add_header("Public", "OPTIONS, PROPFIND, TRACE, GET, HEAD, DELETE, PUT, POST")#, COPY, MOVE, MKCOL, PROPFIND, PROPPATCH, LOCK, UNLOCK
+        xml="""   <?xml version="1.0" encoding="utf-8" ?>
+   <multistatus xmlns="DAV:">
+     <response>
+          <href>http://www.foo.bar/container/</href>
+          <propstat>
+               <prop xmlns:R="http://www.foo.bar/boxschema/">
+                    <R:bigbox/>
+                    <R:author/>
+                    <creationdate/>
+                    <displayname/>
+                    <resourcetype/>
+                    <supportedlock/>
+               </prop>
+               <status>HTTP/1.1 200 OK</status>
+          </propstat>
+     </response>
+     <response>
+          <href>http://www.foo.bar/container/front.html</href>
+          <propstat>
+               <prop xmlns:R="http://www.foo.bar/boxschema/">
+                    <R:bigbox/>
+                    <creationdate/>
+                    <displayname/>
+                    <getcontentlength/>
+                    <getcontenttype/>
+                    <getetag/>
+                    <getlastmodified/>
+                    <resourcetype/>
+                    <supportedlock/>
+               </prop>
+               <status>HTTP/1.1 200 OK</status>
+          </propstat>
+     </response>
+   </multistatus>
+"""
+        self.response.headers["Content-Type"] = 'text/xml; charset="utf-8"'
+        self.response.out.write(xml)
+        self.response.set_status(207)#multistatus
 
+    def propfind(self):
+        logging.debug('PROPFIND')
+        xml="""   <?xml version="1.0" encoding="utf-8" ?>
+   <multistatus xmlns="DAV:">
+     <response>
+          <href>http://www.foo.bar/container/</href>
+          <propstat>
+               <prop xmlns:R="http://www.foo.bar/boxschema/">
+                    <R:bigbox/>
+                    <R:author/>
+                    <creationdate/>
+                    <displayname/>
+                    <resourcetype/>
+                    <supportedlock/>
+               </prop>
+               <status>HTTP/1.1 200 OK</status>
+          </propstat>
+     </response>
+     <response>
+          <href>http://www.foo.bar/container/front.html</href>
+          <propstat>
+               <prop xmlns:R="http://www.foo.bar/boxschema/">
+                    <R:bigbox/>
+                    <creationdate/>
+                    <displayname/>
+                    <getcontentlength/>
+                    <getcontenttype/>
+                    <getetag/>
+                    <getlastmodified/>
+                    <resourcetype/>
+                    <supportedlock/>
+               </prop>
+               <status>HTTP/1.1 200 OK</status>
+          </propstat>
+     </response>
+   </multistatus>
+"""
+        self.response.headers["Content-Type"] = 'text/xml; charset="utf-8"'
+        self.response.out.write(xml)
+        self.response.set_status(207)#multistatus
+        
     def delete(self):
         logging.debug('DELETE')
 
@@ -147,8 +228,60 @@ class test(webapp.RequestHandler):
         else:
             self.response.out.write("["+','.join(map(hypernodes.Hypernodes.toJson,hypernodes.Hypernodes.get(self.request.get('root')).childs(hypernodes.Hypernodes).itervalues()))+"]")
 
+# HNApplication supports WEBDAV commands
+class HNApplication(webapp.WSGIApplication):
+    def __call__(self, environ, start_response):
+        """Called by WSGI when a request comes in."""
+        logging.debug('HNApplication call')
+        request = webapp.Request(environ)
+        response = webapp.Response()
 
-application = webapp.WSGIApplication([
+        webapp.WSGIApplication.active_instance = self
+
+        handler = None
+        groups = ()
+        for regexp, handler_class in self._url_mapping:
+          match = regexp.match(request.path)
+          if match:
+            handler = handler_class()
+            handler.initialize(request, response)
+            groups = match.groups()
+            break
+
+        self.current_request_args = groups
+
+        if handler:
+          try:
+            method = environ['REQUEST_METHOD']
+            if method == 'GET':
+              handler.get(*groups)
+            elif method == 'POST':
+              handler.post(*groups)
+            elif method == 'HEAD':
+              handler.head(*groups)
+            elif method == 'OPTIONS':
+              handler.options(*groups)
+            elif method == 'PUT':
+              handler.put(*groups)
+            elif method == 'DELETE':
+              handler.delete(*groups)
+            elif method == 'TRACE':
+              handler.trace(*groups)
+            elif method == 'PROPFIND':
+              logging.debug('PROPFIND call')
+              handler.propfind(*groups)
+
+            else:
+              handler.error(501)
+          except Exception, e:
+            handler.handle_exception(e, self.__debug)
+        else:
+          response.set_status(404)
+
+        response.wsgi_write(start_response)
+        return ['']
+    
+application = HNApplication([
     ('/test', test),
     ('/([^~]*)\.html', nodetypes.text.handlers.HTML),
     ('/([^~]*)\.xml', nodetypes.text.handlers.XML),
@@ -158,6 +291,7 @@ application = webapp.WSGIApplication([
     ('/([^~]*)\.py', nodetypes.application.handlers.PY),
     ('/[^~]*', MainPage),
 ], debug=True)
+
 
 
 def main():
